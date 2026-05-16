@@ -1,0 +1,12 @@
+[project]
+name = "mv-facial-identification"
+version = "0.1.0"
+description = "Reads RTSP streams, runs DeepFace face recognition, and publishes custom events to an MQTT broker consumed by a control center."
+readme = "README.md"
+requires-python = ">=3.10,<3.14"
+dependencies = [
+    "deepface>=0.0.100",
+    "opencv-python>=4.13.0.92",
+    "paho-mqtt>=2.1.0",
+    "tf-keras>=2.21.0",
+]

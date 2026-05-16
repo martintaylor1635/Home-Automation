@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    container_name: mv-facial-id-mosquitto
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_logs:/mosquitto/log
+    networks:
+      - facial-id-network
+    healthcheck:
+      test: ["CMD", "mosquitto_sub", "-h", "localhost", "-t", "$SYS/#", "-C", "1", "-u", "guest", "-P", "guest"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  facial-identification:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mv-facial-id-app
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    environment:
+      - RTSP_URL=${RTSP_URL:-rtsp://example.local/stream}
+      - MQTT_BROKER=mqtt://mosquitto:1883
+      - MQTT_TOPIC=${MQTT_TOPIC:-home/facial-identification/events}
+      - CAMERA_NAME=${CAMERA_NAME:-front-door}
+      - CONFIDENCE_THRESHOLD=${CONFIDENCE_THRESHOLD:-0.8}
+      - TF_ENABLE_ONEDNN_OPTS=0
+    networks:
+      - facial-id-network
+    restart: unless-stopped
+    # Comment out to keep container running for testing even with connection errors
+    # Uncomment to exit on first error
+    # stdin_open: true
+    # tty: true
+
+volumes:
+  mosquitto_data:
+  mosquitto_logs:
+
+networks:
+  facial-id-network:
+    driver: bridge

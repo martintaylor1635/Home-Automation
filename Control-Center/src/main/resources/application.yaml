@@ -1,3 +1,11 @@
 spring:
   application:
     name: Control-Center
+  threads:
+    virtual:
+      enabled: true
+  mvc:
+    problemdetails:
+      enabled: true
+  main:
+    banner-mode: off
